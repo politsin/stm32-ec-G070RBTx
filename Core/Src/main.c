@@ -29,7 +29,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "stm32g070xx.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
