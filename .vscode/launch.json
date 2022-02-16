@@ -1,0 +1,33 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Cortex Debug",
+			"cwd": "${workspaceRoot}",
+			"executable": "./build/TDS_G070RBTx.elf",
+			"svdFile": "./JLink/STM32G070.svd",
+			"request": "launch",
+			"type": "cortex-debug",
+			"servertype": "jlink",
+			"device": "STM32G070RB",
+			"interface": "swd",
+			"ipAddress": null,
+			"serialNumber": null,
+			"rtos": "FreeRTOS"
+		},
+		{
+			"showDevDebugOutput": true,
+			"cwd": "${workspaceRoot}",
+			"executable": "./build/TDS_G070RBTx.elf",
+			"name": "Debug STM32",
+			"request": "launch",
+			"type": "cortex-debug",
+			"servertype": "openocd",
+			"preLaunchTask": "Build STM",
+			"device": "stlink",
+			"configFiles": [
+				"openocd.cfg"
+			]
+		}
+	]
+}
