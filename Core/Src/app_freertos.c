@@ -27,6 +27,7 @@
 /* USER CODE BEGIN Includes */
 #include "delay_micros.h"
 #include "ds18b20.h"
+#include "tim.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -90,6 +91,13 @@ const osThreadAttr_t uartTask_attributes = {
   .priority = (osPriority_t) osPriorityLow,
   .stack_size = 128 * 4
 };
+/* Definitions for ecTask */
+osThreadId_t ecTaskHandle;
+const osThreadAttr_t ecTask_attributes = {
+  .name = "ecTask",
+  .priority = (osPriority_t) osPriorityLow,
+  .stack_size = 128 * 4
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -102,6 +110,7 @@ void startDs18b20Task(void *argument);
 void startNtcTask(void *argument);
 void startNumDisplayTask(void *argument);
 void startUartTask(void *argument);
+void startEcTask(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -139,16 +148,19 @@ void MX_FREERTOS_Init(void) {
   blinkTaskHandle = osThreadNew(startBlinkTask, NULL, &blinkTask_attributes);
 
   /* creation of ds18b20Task */
-  ds18b20TaskHandle = osThreadNew(startDs18b20Task, NULL, &ds18b20Task_attributes);
+  // ds18b20TaskHandle = osThreadNew(startDs18b20Task, NULL, &ds18b20Task_attributes);
 
   /* creation of ntcTask */
-  ntcTaskHandle = osThreadNew(startNtcTask, NULL, &ntcTask_attributes);
+  // ntcTaskHandle = osThreadNew(startNtcTask, NULL, &ntcTask_attributes);
 
   /* creation of numDisplayTask */
-  numDisplayTaskHandle = osThreadNew(startNumDisplayTask, NULL, &numDisplayTask_attributes);
+  // numDisplayTaskHandle = osThreadNew(startNumDisplayTask, NULL, &numDisplayTask_attributes);
 
   /* creation of uartTask */
-  uartTaskHandle = osThreadNew(startUartTask, NULL, &uartTask_attributes);
+  // uartTaskHandle = osThreadNew(startUartTask, NULL, &uartTask_attributes);
+
+  /* creation of ecTask */
+  ecTaskHandle = osThreadNew(startEcTask, NULL, &ecTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -171,9 +183,14 @@ void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
+  HAL_GPIO_WritePin(PWR_ESP_GPIO_Port, PWR_ESP_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(PWR_ESP_GPIO_Port, PWR_ESP_Pin, GPIO_PIN_RESET);
   for(;;)
   {
-    osDelay(1);
+    HAL_GPIO_WritePin(PWR_LED_GPIO_Port, PWR_LED_Pin, GPIO_PIN_SET);
+    osDelay(950);
+    HAL_GPIO_WritePin(PWR_LED_GPIO_Port, PWR_LED_Pin, GPIO_PIN_RESET);
+    osDelay(50);
   }
   /* USER CODE END StartDefaultTask */
 }
@@ -196,7 +213,7 @@ void startBlinkTask(void *argument)
     HAL_Delay(500);
     HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
-    HAL_Delay(50);
+    HAL_Delay(80);
     osDelay(1);
   }
   /* USER CODE END startBlinkTask */
@@ -257,6 +274,7 @@ void startDs18b20Task(void *argument)
 void startNtcTask(void *argument)
 {
   /* USER CODE BEGIN startNtcTask */
+  HAL_GPIO_WritePin(PWR_V25_GPIO_Port, PWR_V25_Pin, GPIO_PIN_RESET);
   /* Infinite loop */
   for(;;)
   {
@@ -299,6 +317,28 @@ void startUartTask(void *argument)
     osDelay(1);
   }
   /* USER CODE END startUartTask */
+}
+
+/* USER CODE BEGIN Header_startEcTask */
+/**
+* @brief Function implementing the ecTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_startEcTask */
+void startEcTask(void *argument)
+{
+  /* USER CODE BEGIN startEcTask */
+  /* Infinite loop */
+  HAL_GPIO_WritePin(PWR_EC_GPIO_Port, PWR_EC_Pin, GPIO_PIN_SET);
+  // запускает PWM, и посылает триггер для запуска тим3
+  HAL_TIM_OC_Start(&htim1, TIM_CHANNEL_1); 
+  HAL_TIMEx_OCN_Start(&htim1, TIM_CHANNEL_1);
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END startEcTask */
 }
 
 /* Private application code --------------------------------------------------*/
