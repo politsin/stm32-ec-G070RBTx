@@ -25,7 +25,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "delay_micros.h"
+#include "ds18b20.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -211,9 +212,36 @@ void startBlinkTask(void *argument)
 void startDs18b20Task(void *argument)
 {
   /* USER CODE BEGIN startDs18b20Task */
+  int16_t temp_ds18 = 0;
+  setResolution(DS18B20_Resolution_12_bit);
   /* Infinite loop */
   for(;;)
   {
+    // // flag_ds18b20 = 0;
+
+    DB18B20_PORT->BSRR = (uint32_t)DB18B20_PIN << 16u;
+    delay_us(DELAY_RESET);
+    DB18B20_PORT->BSRR = DB18B20_PIN;
+    delay_us(DELAY_RESET);
+
+    writeByte(SKIP_ROM);
+    writeByte(CONVERT_T);
+
+    osDelay(750);
+    DB18B20_PORT->BSRR = (uint32_t)DB18B20_PIN << 16u;
+    delay_us(DELAY_RESET);
+    DB18B20_PORT->BSRR = DB18B20_PIN;
+    delay_us(DELAY_RESET);
+
+    writeByte(SKIP_ROM);
+    writeByte(READ_SCRATCHPAD);
+
+    temp_ds18 = 0;
+
+    for (uint8_t i = 0; i < 16; i++)
+      temp_ds18 += (int16_t)readBit() << i;
+
+    // temp_ds18 = (1000 * temp_ds18 / 16);
     osDelay(1);
   }
   /* USER CODE END startDs18b20Task */
